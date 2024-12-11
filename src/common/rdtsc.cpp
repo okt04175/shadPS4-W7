@@ -26,7 +26,7 @@ static u64 GetTimeNs() {
     // Convert Windows epoch to Unix epoch.
     static constexpr u64 WindowsEpochToUnixEpoch = 0x19DB1DED53E8000LL;
     FILETIME filetime;
-    GetSystemTimePreciseAsFileTime(&filetime);
+    GetSystemTimeAsFileTime(&filetime);
     return Multiplier * ((static_cast<u64>(filetime.dwHighDateTime) << 32) +
                          static_cast<u64>(filetime.dwLowDateTime) - WindowsEpochToUnixEpoch);
 #elif defined(__APPLE__)
