@@ -71,8 +71,8 @@ struct AddressSpace::Impl {
         size_t virtual_size = SystemManagedSize + SystemReservedSize + UserSize;
         for (u32 i = 0; i < MaxReductions; i++) {
             virtual_base = static_cast<u8*>(VirtualAllocEx(process, NULL, virtual_size - reduction,
-                                                          MEM_RESERVE,
-                                                          PAGE_NOACCESS));
+                                                           MEM_RESERVE,
+                                                           PAGE_NOACCESS));
             if (virtual_base) {
                 break;
             }
@@ -108,16 +108,16 @@ struct AddressSpace::Impl {
 
         // Allocate backing file that represents the total physical memory.
         backing_handle =
-            CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ |
-                               PAGE_READWRITE | SEC_COMMIT, 0, BackingSize, nullptr);
+            CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr,
+                               PAGE_READWRITE | SEC_COMMIT, 0, 0, nullptr);
         ASSERT_MSG(backing_handle, "{}", Common::GetLastErrorMsg());
         // Allocate a virtual memory for the backing file map as placeholder
         backing_base = static_cast<u8*>(VirtualAllocEx(process, nullptr, BackingSize,
-                                                      MEM_RESERVE,
-                                                      PAGE_NOACCESS));
+                                                       MEM_RESET,
+                                                       PAGE_NOACCESS));
         // Map backing placeholder. This will commit the pages
-        void* const ret = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0, 0,
-                                         BackingSize, backing_base);
+        void* const ret = MapViewOfFileEx(backing_handle, FILE_MAP_ALL_ACCESS, 0, 0,
+                                          BackingSize, backing_base);
         ASSERT_MSG(ret == backing_base, "{}", Common::GetLastErrorMsg());
     }
 
@@ -150,20 +150,20 @@ struct AddressSpace::Impl {
             if (fd && prot == PAGE_READONLY) {
                 DWORD resultvar;
                 ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                                    MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER,
-                                    PAGE_READWRITE);
+                                     MEM_RESERVE | MEM_COMMIT,
+                                     PAGE_READWRITE);
                 bool ret = ReadFile(backing, ptr, size, &resultvar, NULL);
                 ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
                 ret = VirtualProtect(ptr, size, prot, &resultvar);
                 ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
-                ptr = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0,
-                                     phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
+                ptr = MapViewOfFileEx(backing, FILE_MAP_ALL_ACCESS, 0,
+                                      phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
             }
         } else {
             ptr =
                 VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                              MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot);
+                               MEM_RESERVE | MEM_COMMIT | MEM_RESET, prot);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
         return ptr;
@@ -172,8 +172,8 @@ struct AddressSpace::Impl {
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
         bool ret;
         if (has_backing) {
-            ret = UnmapViewOfFile2(process, reinterpret_cast<PVOID>(virtual_addr),
-                                   MEM_PRESERVE_PLACEHOLDER);
+            ret = UnmapViewOfFile(reinterpret_cast<PVOID>(virtual_addr)
+                                   );
         } else {
             ret = VirtualFreeEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
                                 MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER);
