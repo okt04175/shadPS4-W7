@@ -158,7 +158,7 @@ int PS4_SYSV_ABI sceKernelGettimeofday(OrbisKernelTimeval* tp) {
 
 #ifdef _WIN64
     FILETIME filetime;
-    GetSystemTimePreciseAsFileTime(&filetime);
+    GetSystemTimeAsFileTime(&filetime);
 
     constexpr u64 UNIX_TIME_START = 0x295E9648864000;
     constexpr u64 TICKS_PER_SECOND = 1000000;
