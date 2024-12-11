@@ -144,11 +144,11 @@ static void AccurateSleep(std::chrono::nanoseconds duration) {
 
 // Sets the debugger-visible name of the current thread.
 void SetCurrentThreadName(const char* name) {
-    SetThreadDescription(GetCurrentThread(), UTF8ToUTF16W(name).data());
+    // SetThreadDescription(GetCurrentThread(), UTF8ToUTF16W(name).data());
 }
 
 void SetThreadName(void* thread, const char* name) {
-    SetThreadDescription(thread, UTF8ToUTF16W(name).data());
+    // SetThreadDescription(thread, UTF8ToUTF16W(name).data());
 }
 
 #else // !MSVC_VER, so must be POSIX threads
