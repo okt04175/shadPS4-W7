@@ -261,7 +261,7 @@ uintptr_t IOFile::GetFileMapping() {
     HANDLE mapping = nullptr;
 
     if (file_access_mode == FileAccessMode::ReadWrite) {
-        mapping = CreateFileMappingW(hfile, NULL, PAGE_READWRITE|FILE_MAP_WRITE|SEC_COMMIT, 0,
+        mapping = CreateFileMappingW(hfile, NULL, PAGE_READWRITE | FILE_MAP_WRITE | SEC_COMMIT, 0,
                                      0, NULL);
     } else {
         mapping = hfile;
