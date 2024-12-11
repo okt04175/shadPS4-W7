@@ -70,9 +70,9 @@ struct AddressSpace::Impl {
         size_t reduction = 0;
         size_t virtual_size = SystemManagedSize + SystemReservedSize + UserSize;
         for (u32 i = 0; i < MaxReductions; i++) {
-            virtual_base = static_cast<u8*>(VirtualAlloc2(process, NULL, virtual_size - reduction,
+            virtual_base = static_cast<u8*>(VirtualAllocEX(hProcess, NULL, virtual_size - reduction,
                                                           MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                          PAGE_NOACCESS, &param, 1));
+                                                          PAGE_NOACCESS));
             if (virtual_base) {
                 break;
             }
@@ -108,16 +108,16 @@ struct AddressSpace::Impl {
 
         // Allocate backing file that represents the total physical memory.
         backing_handle =
-            CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ,
-                               PAGE_READWRITE, SEC_COMMIT, BackingSize, nullptr, nullptr, 0);
+            CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ |
+                               PAGE_READWRITE | SEC_COMMIT, 0, BackingSize, nullptr);
         ASSERT_MSG(backing_handle, "{}", Common::GetLastErrorMsg());
         // Allocate a virtual memory for the backing file map as placeholder
-        backing_base = static_cast<u8*>(VirtualAlloc2(process, nullptr, BackingSize,
-                                                      MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                      PAGE_NOACCESS, nullptr, 0));
+        backing_base = static_cast<u8*>(VirtualAllocEx(hProcess, nullptr, BackingSize,
+                                                      MEM_RESERVE,
+                                                      PAGE_NOACCESS));
         // Map backing placeholder. This will commit the pages
-        void* const ret = MapViewOfFile3(backing_handle, process, backing_base, 0, BackingSize,
-                                         MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
+        void* const ret = MapViewOfFileEx(backing_handle | process, FILE_MAP_ALL_ACCESS, 0, 0,
+                                         BackingSize, backing_base);
         ASSERT_MSG(ret == backing_base, "{}", Common::GetLastErrorMsg());
     }
 
@@ -128,7 +128,7 @@ struct AddressSpace::Impl {
             }
         }
         if (backing_base) {
-            if (!UnmapViewOfFile2(process, backing_base, MEM_PRESERVE_PLACEHOLDER)) {
+            if (!UnmapViewOfFile(backing_base)) {
                 LOG_CRITICAL(Render, "Failed to unmap backing memory placeholder");
             }
             if (!VirtualFreeEx(process, backing_base, 0, MEM_RELEASE)) {
@@ -149,21 +149,21 @@ struct AddressSpace::Impl {
             HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
             if (fd && prot == PAGE_READONLY) {
                 DWORD resultvar;
-                ptr = VirtualAlloc2(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                ptr = VirtualAllocEx(hProcess, reinterpret_cast<PVOID>(virtual_addr), size,
                                     MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER,
-                                    PAGE_READWRITE, nullptr, 0);
+                                    PAGE_READWRITE);
                 bool ret = ReadFile(backing, ptr, size, &resultvar, NULL);
                 ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
                 ret = VirtualProtect(ptr, size, prot, &resultvar);
                 ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
-                ptr = MapViewOfFile3(backing, process, reinterpret_cast<PVOID>(virtual_addr),
-                                     phys_addr, size, MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
+                ptr = MapViewOfFileEx(backing | process, FILE_MAP_ALL_ACCESS, 0,
+                                     phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
             }
         } else {
             ptr =
-                VirtualAlloc2(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                              MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot, nullptr, 0);
+                VirtualAllocEx(hProcess, reinterpret_cast<PVOID>(virtual_addr), size,
+                              MEM_RESERVE | MEM_COMMIT | MEM_REPLACE_PLACEHOLDER, prot);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
         return ptr;
