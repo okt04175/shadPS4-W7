@@ -88,6 +88,7 @@ jobs:
       with:
         arch: amd64
         sdk: 8.1
+        toolset: 16.10
         vsversion: 2019
 
     - name: Configure CMake
@@ -144,6 +145,7 @@ jobs:
       with:
         arch: amd64
         sdk: 8.1
+        toolset: 16.10
         vsversion: 2019
 
     - name: Configure CMake
