@@ -157,7 +157,7 @@ struct AddressSpace::Impl {
                 ret = VirtualProtect(ptr, size, prot, &resultvar);
                 ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
-                ptr = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0,
+                // ptr = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0,
                                       phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
             }
         } else {
