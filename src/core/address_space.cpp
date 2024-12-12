@@ -146,18 +146,18 @@ struct AddressSpace::Impl {
         region->is_mapped = true;
         void* ptr = nullptr;
         if (phys_addr != -1) {
-            HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
+            // HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
             if (fd && prot == PAGE_READONLY) {
                 DWORD resultvar;
                 ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
                                      MEM_RESERVE | MEM_COMMIT,
                                      PAGE_READWRITE);
-                bool ret = ReadFile(backing, ptr, size, &resultvar, NULL);
+                bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
                 ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
                 ret = VirtualProtect(ptr, size, prot, &resultvar);
                 ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
-                ptr = MapViewOfFileEx(backing, FILE_MAP_ALL_ACCESS, 0,
+                ptr = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0,
                                       phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
             }
         } else {
