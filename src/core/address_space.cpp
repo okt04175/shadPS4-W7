@@ -170,16 +170,16 @@ struct AddressSpace::Impl {
     }
 
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
-        bool ret;
-        if (has_backing) {
-            ret = UnmapViewOfFile(reinterpret_cast<PVOID>(virtual_addr)
+        // bool ret;
+        // if (has_backing) {
+            // ret = UnmapViewOfFile(reinterpret_cast<PVOID>(virtual_addr)
                                    );
-        } else {
-            ret = VirtualFreeEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                                MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER);
-        }
-        ASSERT_MSG(ret, "Unmap operation on virtual_addr={:#X} failed: {}", virtual_addr,
-                   Common::GetLastErrorMsg());
+        // } else {
+            // ret = VirtualFreeEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                                // MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER);
+        // }
+        // ASSERT_MSG(ret, "Unmap operation on virtual_addr={:#X} failed: {}", virtual_addr,
+                   // Common::GetLastErrorMsg());
 
         // The unmap call will create a new placeholder region. We need to see if we can coalesce it
         // with neighbors.
