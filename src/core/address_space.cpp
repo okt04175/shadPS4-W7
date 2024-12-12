@@ -161,9 +161,9 @@ struct AddressSpace::Impl {
                                       phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
             }
         } else {
-            ptr =
-                VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                               MEM_RESERVE | MEM_COMMIT, prot);
+            // ptr =
+                // VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                               // MEM_RESERVE | MEM_COMMIT, prot);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
         return ptr;
