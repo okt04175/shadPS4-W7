@@ -159,11 +159,13 @@ struct AddressSpace::Impl {
             } else {
                 ptr = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0,
                                       phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
+                ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
             }
         } else {
             ptr =
                 VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
                                MEM_RESERVE | MEM_COMMIT | MEM_RESET, prot);
+            ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
         return ptr;
