@@ -942,6 +942,8 @@ if (WIN32)
 
     # Target Windows 10 RS5
     add_definitions(-DNTDDI_VERSION=0x06010000 -D_WIN32_WINNT=0x0601 -DWINVER=0x0601)
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
+    set(CMAKE_INSTALL_UCRT_LIBRARIES ON)
 
     if (MSVC)
         target_link_libraries(shadps4 PRIVATE clang_rt.builtins-x86_64.lib)
