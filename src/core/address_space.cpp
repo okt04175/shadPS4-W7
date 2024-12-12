@@ -148,17 +148,17 @@ struct AddressSpace::Impl {
         if (phys_addr != -1) {
             // HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
             if (fd && prot == PAGE_READONLY) {
-                DWORD resultvar;
-                ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                                     MEM_RESERVE | MEM_COMMIT,
-                                     PAGE_READWRITE);
-                bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
-                ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
-                ret = VirtualProtect(ptr, size, prot, &resultvar);
-                ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
+                // DWORD resultvar;
+                // ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                                     // MEM_RESERVE | MEM_COMMIT,
+                                     // PAGE_READWRITE);
+                // bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
+                // ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
+                // ret = VirtualProtect(ptr, size, prot, &resultvar);
+                // ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
                 // ptr = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0,
-                                      phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
+                                      // phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
             }
         } else {
             // ptr =
