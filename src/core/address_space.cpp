@@ -142,10 +142,10 @@ struct AddressSpace::Impl {
 
     void* Map(VAddr virtual_addr, PAddr phys_addr, size_t size, ULONG prot, uintptr_t fd = 0) {
         // Before mapping we must carve a placeholder with the exact properties of our mapping.
-        auto* region = EnsureSplitRegionForMapping(virtual_addr, size);
-        region->is_mapped = true;
-        void* ptr = nullptr;
-        if (phys_addr != -1) {
+        // auto* region = EnsureSplitRegionForMapping(virtual_addr, size);
+        // region->is_mapped = true;
+        // void* ptr = nullptr;
+        // if (phys_addr != -1) {
             // HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
             // if (fd && prot == PAGE_READONLY) {
                 // DWORD resultvar;
@@ -164,9 +164,9 @@ struct AddressSpace::Impl {
             // ptr =
                 // VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
                                // MEM_RESERVE | MEM_COMMIT, prot);
-        }
-        ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
-        return ptr;
+        // }
+        // ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
+        // return ptr;
     }
 
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
@@ -183,7 +183,7 @@ struct AddressSpace::Impl {
 
         // The unmap call will create a new placeholder region. We need to see if we can coalesce it
         // with neighbors.
-        JoinRegionsAfterUnmap(virtual_addr, size);
+        // JoinRegionsAfterUnmap(virtual_addr, size);
     }
 
     // The following code is inspired from Dolphin's MemArena
