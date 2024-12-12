@@ -152,7 +152,7 @@ struct OrbisKernelUuid {
 int PS4_SYSV_ABI sceKernelUuidCreate(OrbisKernelUuid* orbisUuid) {
 #ifdef _WIN64
     UUID uuid;
-    UuidCreate(&uuid);
+    // UuidCreate(&uuid);
     orbisUuid->timeLow = uuid.Data1;
     orbisUuid->timeMid = uuid.Data2;
     orbisUuid->timeHiAndVersion = uuid.Data3;
