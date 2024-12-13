@@ -109,7 +109,7 @@ struct AddressSpace::Impl {
         // Allocate backing file that represents the total physical memory.
         backing_handle =
             CreateFileMappingW(INVALID_HANDLE_VALUE, NULL,
-                               PAGE_READWRITE | SEC_COMMIT, BackingSize, BackingSize, NULL);
+                               PAGE_READWRITE | SEC_COMMIT, 0, BackingSize, NULL);
         ASSERT_MSG(backing_handle, "{}", Common::GetLastErrorMsg());
         // Allocate a virtual memory for the backing file map as placeholder
         //backing_base = static_cast<u8*>(VirtualAllocEx(process, nullptr, BackingSize,
