@@ -144,46 +144,46 @@ struct AddressSpace::Impl {
         // Before mapping we must carve a placeholder with the exact properties of our mapping.
         auto* region = EnsureSplitRegionForMapping(virtual_addr, size);
         region->is_mapped = true;
-        // void* ptr = nullptr;
-        // if (phys_addr != -1) {
-            // HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
-            // if (fd && prot == PAGE_READONLY) {
-                // DWORD resultvar;
-                // ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                                     // MEM_RESERVE | MEM_COMMIT,
-                                     // PAGE_READWRITE);
-                // bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
-                // ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
-                // ret = VirtualProtect(ptr, size, prot, &resultvar);
-                // ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
-            // } else {
-                // ptr = MapViewOfFileEx(process, FILE_MAP_ALL_ACCESS, 0,
-                                      // phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
-            // }
-        // } else {
-            // ptr =
-                // VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                               // MEM_RESERVE | MEM_COMMIT, prot);
-        // }
-        // ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
-        // return ptr;
+        void* ptr = nullptr;
+        if (phys_addr != -1) {
+            HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
+            if (fd && prot == PAGE_READONLY) {
+                DWORD resultvar;
+                ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                                     MEM_RESERVE | MEM_COMMIT,
+                                     PAGE_READWRITE);
+                bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
+                ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
+                ret = VirtualProtect(ptr, size, prot, &resultvar);
+                ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
+            } else {
+                ptr = MapViewOfFileEx(backing, FILE_MAP_WRITE | FILE_MAP_READ, 0,
+                                      phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
+            }
+        } else {
+            ptr =
+                VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                               MEM_RESERVE | MEM_COMMIT, prot);
+        }
+        ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
+        return ptr;
     }
 
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
-        // bool ret;
-        // if (has_backing) {
-            // ret = UnmapViewOfFile(reinterpret_cast<PVOID>(virtual_addr)
-                                   // );
-        // } else {
-            // ret = VirtualFreeEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
-                                // MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER);
-        // }
-        // ASSERT_MSG(ret, "Unmap operation on virtual_addr={:#X} failed: {}", virtual_addr,
-                   // Common::GetLastErrorMsg());
+        bool ret;
+        if (has_backing) {
+            ret = UnmapViewOfFile(reinterpret_cast<PVOID>(virtual_addr)
+                                   );
+        } else {
+            ret = VirtualFreeEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                                MEM_RELEASE);
+        }
+        ASSERT_MSG(ret, "Unmap operation on virtual_addr={:#X} failed: {}", virtual_addr,
+                   Common::GetLastErrorMsg());
 
         // The unmap call will create a new placeholder region. We need to see if we can coalesce it
         // with neighbors.
-        // JoinRegionsAfterUnmap(virtual_addr, size);
+        // JoinRegionsAfterJoinRegionsAfterUnmapUnmap(virtual_addr, size);
     }
 
     // The following code is inspired from Dolphin's MemArena
@@ -212,7 +212,7 @@ struct AddressSpace::Impl {
 
             // Split the placeholder.
             if (!VirtualFreeEx(process, LPVOID(address), size,
-                               MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
+                               MEM_RELEASE)) {
                 UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
                 return nullptr;
             }
@@ -274,7 +274,7 @@ struct AddressSpace::Impl {
         if (it_prev != regions.end() && !it_prev->second.is_mapped) {
             const size_t total_size = it_prev->second.size + size;
             if (!VirtualFreeEx(process, LPVOID(it_prev->first), total_size,
-                               MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS)) {
+                               MEM_RELEASE)) {
                 UNREACHABLE_MSG("Region coalescing failed: {}", Common::GetLastErrorMsg());
             }
 
@@ -288,7 +288,7 @@ struct AddressSpace::Impl {
         if (it_next != regions.end() && !it_next->second.is_mapped) {
             const size_t total_size = it->second.size + it_next->second.size;
             if (!VirtualFreeEx(process, LPVOID(it->first), total_size,
-                               MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS)) {
+                               MEM_RELEASE)) {
                 UNREACHABLE_MSG("Region coalescing failed: {}", Common::GetLastErrorMsg());
             }
 
