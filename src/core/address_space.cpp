@@ -112,12 +112,12 @@ struct AddressSpace::Impl {
                                PAGE_READWRITE | SEC_COMMIT, 0, BackingSize, nullptr);
         ASSERT_MSG(backing_handle, "{}", Common::GetLastErrorMsg());
         // Allocate a virtual memory for the backing file map as placeholder
-        backing_base = static_cast<u8*>(VirtualAlloc(nullptr, BackingSize,
+        backing_base = static_cast<u8*>(VirtualAllocEx(process, nullptr, BackingSize,
                                                        MEM_COMMIT | MEM_RESERVE,
                                                        PAGE_READWRITE));
         // Map backing placeholder. This will commit the pages
-        void* const ret = MapViewOfFile(backing_handle, FILE_MAP_ALL_ACCESS | FILE_MAP_COPY | FILE_MAP_EXECUTE, 0, 0,
-                                          BackingSize);
+        void* const ret = MapViewOfFileEx(backing_handle, FILE_MAP_WRITE | FILE_MAP_READ | FILE_MAP_COPY, 0, 0,
+                                          0, backing_base);
         ASSERT_MSG(ret == backing_base, "{}", Common::GetLastErrorMsg());
     }
 
@@ -142,8 +142,8 @@ struct AddressSpace::Impl {
 
     void* Map(VAddr virtual_addr, PAddr phys_addr, size_t size, ULONG prot, uintptr_t fd = 0) {
         // Before mapping we must carve a placeholder with the exact properties of our mapping.
-        // auto* region = EnsureSplitRegionForMapping(virtual_addr, size);
-        // region->is_mapped = true;
+        auto* region = EnsureSplitRegionForMapping(virtual_addr, size);
+        region->is_mapped = true;
         // void* ptr = nullptr;
         // if (phys_addr != -1) {
             // HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
