@@ -117,7 +117,7 @@ struct AddressSpace::Impl {
                                                        PAGE_NOACCESS));
         // Map backing placeholder. This will commit the pages
         void* const ret = MapViewOfFileEx(backing_handle, FILE_MAP_ALL_ACCESS, 0, 0,
-                                          BackingSize);
+                                          BackingSize, backing_base);
         ASSERT_MSG(ret == backing_base, "{}", Common::GetLastErrorMsg());
     }
 
