@@ -112,7 +112,7 @@ struct AddressSpace::Impl {
                                PAGE_READWRITE | SEC_COMMIT, 0, BackingSize, NULL);
         ASSERT_MSG(backing_handle, "{}", Common::GetLastErrorMsg());
         // Allocate a virtual memory for the backing file map as placeholder
-        backing_base = static_cast<u8*>(VirtualAllocEx(process, NULL, BackingSize,
+        backing_base = static_cast<u8*>(VirtualAlloc(nullptr, BackingSize,
                                                        MEM_RESERVE,
                                                        PAGE_EXECUTE_READWRITE));
         // Map backing placeholder. This will commit the pages
