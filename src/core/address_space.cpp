@@ -109,14 +109,14 @@ struct AddressSpace::Impl {
         // Allocate backing file that represents the total physical memory.
         backing_handle =
             CreateFileMappingW(INVALID_HANDLE_VALUE, NULL,
-                               PAGE_READWRITE | SEC_COMMIT, 0, BackingSize, NULL);
+                               PAGE_EXECUTE_READWRITE | SEC_COMMIT, BackingSize, BackingSize, NULL);
         ASSERT_MSG(backing_handle, "{}", Common::GetLastErrorMsg());
         // Allocate a virtual memory for the backing file map as placeholder
-        backing_base = static_cast<u8*>(VirtualAlloc(nullptr, BackingSize,
+        backing_base = static_cast<u8*>(VirtualAlloc(NULL, BackingSize,
                                                        MEM_RESERVE,
                                                        PAGE_EXECUTE_READWRITE));
         // Map backing placeholder. This will commit the pages
-        void* const ret = MapViewOfFile(backing_handle, FILE_MAP_ALL_ACCESS, 0, 0,
+        void* const ret = MapViewOfFile(backing_handle, FILE_MAP_ALL_ACCESS | FILE_MAP_COPY | FILE_MAP_EXECUTE, 0, 0,
                                           BackingSize);
         ASSERT_MSG(ret == backing_base, "{}", Common::GetLastErrorMsg());
     }
