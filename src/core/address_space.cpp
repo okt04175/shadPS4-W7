@@ -117,7 +117,7 @@ struct AddressSpace::Impl {
                                                        PAGE_READWRITE));
         // Map backing placeholder. This will commit the pages
         void* const ret = MapViewOfFileEx(backing_handle, FILE_MAP_WRITE | FILE_MAP_READ | FILE_MAP_COPY, 0, 0,
-                                          0, backing_base);
+                                          BackingSize, backing_base);
         ASSERT_MSG(ret == backing_base, "{}", Common::GetLastErrorMsg());
     }
 
@@ -233,11 +233,11 @@ struct AddressSpace::Impl {
         ASSERT(region_size >= minimum_size);
 
         // Split the placeholder.
-        // if (!VirtualFreeEx(process, LPVOID(address), size,
-                           // MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER)) {
-            // UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
-            // return nullptr;
-        // }
+        if (!VirtualFreeEx(process, LPVOID(address), size,
+                           MEM_RELEASE)) {
+            UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
+            return nullptr;
+        }
 
         // Do we now have two regions or three regions?
         if (region_size == minimum_size) {
@@ -572,7 +572,7 @@ void AddressSpace::Unmap(VAddr virtual_addr, size_t size, VAddr start_in_vma, VA
     // There does not appear to be comparable support for partial unmapping on Windows.
     // Unfortunately, a least one title was found to require this. The workaround is to unmap
     // the entire allocation and remap the portions outside of the requested unmapping range.
-    // impl->Unmap(virtual_addr, size, has_backing && !readonly_file);
+    impl->Unmap(virtual_addr, size, has_backing && !readonly_file);
 
     // TODO: Determine if any titles require partial unmapping support for flexible allocations.
     ASSERT_MSG(has_backing || (start_in_vma == 0 && end_in_vma == size),
