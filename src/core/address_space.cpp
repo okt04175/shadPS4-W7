@@ -71,8 +71,8 @@ struct AddressSpace::Impl {
         size_t virtual_size = SystemManagedSize + SystemReservedSize + UserSize;
         for (u32 i = 0; i < MaxReductions; i++) {
             virtual_base = static_cast<u8*>(VirtualAllocEx(process, NULL, virtual_size - reduction,
-                                                           MEM_RESERVE,
-                                                           PAGE_NOACCESS));
+                                                           MEM_COMMIT | MEM_RESERVE,
+                                                           PAGE_WRITECOPY));
             if (virtual_base) {
                 break;
             }
@@ -151,13 +151,13 @@ struct AddressSpace::Impl {
                 DWORD resultvar;
                 ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
                                      MEM_RESERVE | MEM_COMMIT,
-                                     PAGE_READWRITE);
+                                     PAGE_WRITECOPY);
                 bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
                 ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
                 ret = VirtualProtect(ptr, size, prot, &resultvar);
                 ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
-                ptr = MapViewOfFileEx(backing, FILE_MAP_WRITE | FILE_MAP_READ, 0,
+                ptr = MapViewOfFileEx(backing, FILE_MAP_COPY, 0,
                                       phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
             }
         } else {
@@ -211,7 +211,7 @@ struct AddressSpace::Impl {
                        region_size, size);
 
             // Split the placeholder.
-            if (!VirtualFreeEx(process, LPVOID(address), size,
+            if (!VirtualFreeEx(process, LPVOID(address), 0,
                                MEM_RELEASE)) {
                 UNREACHABLE_MSG("Region splitting failed: {}", Common::GetLastErrorMsg());
                 return nullptr;
