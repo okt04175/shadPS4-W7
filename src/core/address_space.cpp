@@ -163,7 +163,7 @@ struct AddressSpace::Impl {
         } else {
             ptr =
                 VirtualAllocEx(process, reinterpret_cast<LPVOID>(virtual_addr), size,
-                               MEM_RESERVE | MEM_COMMIT, prot);
+                               MEM_RESERVE | MEM_COMMIT, PAGE_WRITECOPY);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
         return ptr;
