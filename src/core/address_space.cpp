@@ -71,8 +71,8 @@ struct AddressSpace::Impl {
         size_t virtual_size = SystemManagedSize + SystemReservedSize + UserSize;
         for (u32 i = 0; i < MaxReductions; i++) {
             virtual_base = static_cast<u8*>(VirtualAllocEx(process, NULL, virtual_size - reduction,
-                                                           MEM_COMMIT | MEM_RESERVE,
-                                                           PAGE_WRITECOPY));
+                                                           MEM_RESERVE,
+                                                           PAGE_NOACCESS));
             if (virtual_base) {
                 break;
             }
