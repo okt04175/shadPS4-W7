@@ -114,7 +114,7 @@ struct AddressSpace::Impl {
         // Allocate a virtual memory for the backing file map as placeholder
         backing_base = static_cast<u8*>(VirtualAllocEx(process, nullptr, BackingSize,
                                                        MEM_COMMIT | MEM_RESERVE,
-                                                       PAGE_READWRITE));
+                                                       PAGE_WRITECOPY));
         // Map backing placeholder. This will commit the pages
         void* const ret = MapViewOfFileEx(backing_handle, FILE_MAP_COPY, 0, 0,
                                           BackingSize, backing_base);
