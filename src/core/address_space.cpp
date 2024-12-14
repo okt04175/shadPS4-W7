@@ -116,7 +116,7 @@ struct AddressSpace::Impl {
                                                        MEM_COMMIT | MEM_RESERVE,
                                                        PAGE_READWRITE));
         // Map backing placeholder. This will commit the pages
-        void* const ret = MapViewOfFileEx(backing_handle, FILE_MAP_WRITE | FILE_MAP_READ | FILE_MAP_COPY, 0, 0,
+        void* const ret = MapViewOfFileEx(backing_handle, FILE_MAP_COPY, 0, 0,
                                           BackingSize, backing_base);
         ASSERT_MSG(ret == backing_base, "{}", Common::GetLastErrorMsg());
     }
