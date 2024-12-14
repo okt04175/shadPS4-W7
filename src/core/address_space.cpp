@@ -149,7 +149,7 @@ struct AddressSpace::Impl {
             HANDLE backing = fd ? reinterpret_cast<HANDLE>(fd) : backing_handle;
             if (fd && prot == PAGE_READONLY) {
                 DWORD resultvar;
-                ptr = VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                ptr = VirtualAllocEx(process, reinterpret_cast<LPVOID>(virtual_addr), size,
                                      MEM_RESERVE | MEM_COMMIT,
                                      PAGE_WRITECOPY);
                 bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
@@ -158,11 +158,11 @@ struct AddressSpace::Impl {
                 ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
                 ptr = MapViewOfFileEx(backing, FILE_MAP_COPY, 0,
-                                      phys_addr, size, reinterpret_cast<PVOID>(virtual_addr));
+                                      phys_addr, size, reinterpret_cast<LPVOID>(virtual_addr));
             }
         } else {
             ptr =
-                VirtualAllocEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+                VirtualAllocEx(process, reinterpret_cast<LPVOID>(virtual_addr), size,
                                MEM_RESERVE | MEM_COMMIT, prot);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
@@ -172,10 +172,10 @@ struct AddressSpace::Impl {
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
         bool ret;
         if (has_backing) {
-            ret = UnmapViewOfFile(reinterpret_cast<PVOID>(virtual_addr)
+            ret = UnmapViewOfFile(reinterpret_cast<LPVOID>(virtual_addr)
                                    );
         } else {
-            ret = VirtualFreeEx(process, reinterpret_cast<PVOID>(virtual_addr), size,
+            ret = VirtualFreeEx(process, reinterpret_cast<LPVOID>(virtual_addr), size,
                                 MEM_RELEASE);
         }
         ASSERT_MSG(ret, "Unmap operation on virtual_addr={:#X} failed: {}", virtual_addr,
