@@ -183,7 +183,7 @@ struct AddressSpace::Impl {
 
         // The unmap call will create a new placeholder region. We need to see if we can coalesce it
         // with neighbors.
-        JoinRegionsAfterUnmap‎(virtual_addr, size);
+        void JoinRegionsAfterUnmap‎(virtual_addr, size);
     }
 
     // The following code is inspired from Dolphin's MemArena
