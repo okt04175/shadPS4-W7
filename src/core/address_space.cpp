@@ -157,9 +157,8 @@ struct AddressSpace::Impl {
                 // ret = VirtualProtect(ptr, size, prot, &resultvar);
                 // ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
-                ptr = MapViewOfFileEx(backing, FILE_MAP_COPY, 0,
-                                      phys_addr, size, NULL);
-                continue;
+                // ptr = MapViewOfFileEx(backing, FILE_MAP_COPY, 0,
+                                      // phys_addr, size, NULL);
             }
         } else {
             // ptr =
@@ -167,7 +166,7 @@ struct AddressSpace::Impl {
                                // MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
-        return ptr;
+        // return ptr;
     }
 
     void Unmap(VAddr virtual_addr, size_t size, bool has_backing) {
