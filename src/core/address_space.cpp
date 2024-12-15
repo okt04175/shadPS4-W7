@@ -166,6 +166,7 @@ struct AddressSpace::Impl {
                                // MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
+        continue;
         return ptr;
     }
 
