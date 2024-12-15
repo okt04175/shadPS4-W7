@@ -151,14 +151,14 @@ struct AddressSpace::Impl {
                 DWORD resultvar;
                 ptr = VirtualAllocEx(process, reinterpret_cast<LPVOID>(virtual_addr), size,
                                      MEM_RESERVE | MEM_COMMIT,
-                                     PAGE_WRITECOPY);
+                                     PAGE_EXECUTE_WRITECOPY);
                 bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
                 ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
                 // ret = VirtualProtect(ptr, size, prot, &resultvar);
                 // ASSERT_MSG(ret, "VirtualProtect failed. {}", Common::GetLastErrorMsg());
             } else {
                 ptr = MapViewOfFileEx(backing, FILE_MAP_COPY, 0,
-                                      phys_addr, size, reinterpret_cast<LPVOID>(virtual_addr));
+                                      phys_addr, size, NULL);
             }
         } else {
             ptr =
