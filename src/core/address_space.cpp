@@ -159,6 +159,7 @@ struct AddressSpace::Impl {
             } else {
                 ptr = MapViewOfFileEx(backing, FILE_MAP_COPY, 0,
                                       phys_addr, size, NULL);
+                continue;
             }
         } else {
             // ptr =
@@ -166,7 +167,6 @@ struct AddressSpace::Impl {
                                // MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
         }
         ASSERT_MSG(ptr, "{}", Common::GetLastErrorMsg());
-        continue;
         return ptr;
     }
 
