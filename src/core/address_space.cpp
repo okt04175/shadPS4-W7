@@ -151,7 +151,7 @@ struct AddressSpace::Impl {
                 DWORD resultvar;
                 ptr = VirtualAllocEx(process, reinterpret_cast<LPVOID>(virtual_addr), size,
                                      MEM_RESERVE | MEM_COMMIT,
-                                     PAGE_EXECUTE_WRITECOPY);
+                                     PAGE_EXECUTE_READWRITE);
                 bool ret = ReadFile(process, ptr, size, &resultvar, NULL);
                 ASSERT_MSG(ret, "ReadFile failed. {}", Common::GetLastErrorMsg());
                 // ret = VirtualProtect(ptr, size, prot, &resultvar);
