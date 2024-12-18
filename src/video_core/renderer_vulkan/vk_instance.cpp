@@ -9,6 +9,7 @@
 
 #include "common/assert.h"
 #include "common/config.h"
+#include "common/debug.h"
 #include "sdl_window.h"
 #include "video_core/renderer_vulkan/liverpool_to_vk.h"
 #include "video_core/renderer_vulkan/vk_instance.h"
@@ -261,7 +262,8 @@ bool Instance::CreateDevice() {
     // The next two extensions are required to be available together in order to support write masks
     color_write_en = add_extension(VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME);
     color_write_en &= add_extension(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-    const bool calibrated_timestamps = add_extension(VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME);
+    const bool calibrated_timestamps =
+        TRACY_GPU_ENABLED ? add_extension(VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME) : false;
     const bool robustness = add_extension(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
     list_restart = add_extension(VK_EXT_PRIMITIVE_TOPOLOGY_LIST_RESTART_EXTENSION_NAME);
     maintenance5 = add_extension(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
@@ -379,7 +381,6 @@ bool Instance::CreateDevice() {
         vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT{
             .extendedDynamicState = true,
         },
-        vk::PhysicalDeviceExtendedDynamicState2FeaturesEXT{},
         vk::PhysicalDeviceExtendedDynamicState3FeaturesEXT{
             .extendedDynamicState3ColorWriteMask = true,
         },
@@ -582,23 +583,20 @@ bool Instance::IsFormatSupported(const vk::Format format,
     return (GetFormatFeatureFlags(format) & flags) == flags;
 }
 
-static vk::Format GetAlternativeFormat(const vk::Format format) {
-    switch (format) {
-    case vk::Format::eD16UnormS8Uint:
-        return vk::Format::eD24UnormS8Uint;
-    default:
-        return format;
-    }
-}
-
 vk::Format Instance::GetSupportedFormat(const vk::Format format,
                                         const vk::FormatFeatureFlags2 flags) const {
-    if (IsFormatSupported(format, flags)) [[likely]] {
-        return format;
-    }
-    const vk::Format alternative = GetAlternativeFormat(format);
-    if (IsFormatSupported(alternative, flags)) [[likely]] {
-        return alternative;
+    if (!IsFormatSupported(format, flags)) [[unlikely]] {
+        switch (format) {
+        case vk::Format::eD16UnormS8Uint:
+            if (IsFormatSupported(vk::Format::eD24UnormS8Uint, flags)) {
+                return vk::Format::eD24UnormS8Uint;
+            }
+            if (IsFormatSupported(vk::Format::eD32SfloatS8Uint, flags)) {
+                return vk::Format::eD32SfloatS8Uint;
+            }
+        default:
+            break;
+        }
     }
     return format;
 }

@@ -294,7 +294,7 @@ void EmitContext::DefineInputs() {
                     });
                 // Note that we pass index rather than Id
                 input_params[attrib.semantic] = SpirvAttribute{
-                    .id = rate_idx,
+                    .id = {rate_idx},
                     .pointer_type = input_u32,
                     .component_type = U32[1],
                     .num_components = std::min<u16>(attrib.num_elements, num_components),
@@ -381,9 +381,8 @@ void EmitContext::DefineInputs() {
         for (int param_id = 0; param_id < num_params; ++param_id) {
             const Id type{TypeArray(F32[4], ConstU32(num_verts_in))};
             const Id id{DefineInput(type, param_id)};
-            Name(id, fmt::format("in_attr{}", param_id));
+            Name(id, fmt::format("gs_in_attr{}", param_id));
             input_params[param_id] = {id, input_f32, F32[1], 4};
-            interfaces.push_back(id);
         }
         break;
     }
